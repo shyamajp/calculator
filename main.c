@@ -3,16 +3,20 @@
 int main()
 {
     // ask for user input e.g. 1+1
-    // for now, read 2 integers separately
-    int firstNum, secondNum;
-    char operator;
+    // 2 single digit numbers only
+    char input[3];
+    printf("Enter a simple math expression (e.g. 1+1): ");
+    scanf("%s", input);
 
-    printf("Enter first integer: ");
-    scanf("%d", &firstNum);
-    printf("Enter second integer: ");
-    scanf("%d", &secondNum);
-    printf("Enter operator (+, -, *, /): ");
-    scanf(" %c", &operator);
+    // subtract '0' to get the actual integer value
+    // kinda hacky isnt it?
+    int firstNum = input[0] - '0';
+    int secondNum = input[2] - '0';
+    char operator= input[1];
+
+    printf("First number: %d\n", firstNum);
+    printf("Second number: %d\n", secondNum);
+    printf("Operator: %c\n", operator);
 
     // split string by operator
 
