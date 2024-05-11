@@ -1,4 +1,30 @@
 #include <stdio.h>
+#include <stdlib.h>
+
+double add(double a, double b)
+{
+    return a + b;
+}
+
+double subtract(double a, double b)
+{
+    return a - b;
+}
+
+double multiply(double a, double b)
+{
+    return a * b;
+}
+
+double divide(double a, double b)
+{
+    if (b == 0)
+    {
+        printf("Division by zero is not allowed, exiting...\n");
+        exit(1);
+    }
+    return a / b;
+}
 
 int main()
 {
@@ -22,21 +48,16 @@ int main()
     switch (operator)
     {
     case '+':
-        result = a + b;
+        result = add(a, b);
         break;
     case '-':
-        result = a - b;
+        result = subtract(a, b);
         break;
     case '*':
-        result = a * b;
+        result = multiply(a, b);
         break;
     case '/':
-        result = a / b;
-        if (b == 0)
-        {
-            printf("Division by zero is not allowed, exiting...\n");
-            return 1;
-        }
+        result = divide(a, b);
         break;
     default:
         printf("Invalid operator, exiting...\n");
