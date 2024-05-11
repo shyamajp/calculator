@@ -32,6 +32,11 @@ int main()
         break;
     case '/':
         result = a / b;
+        if (b == 0)
+        {
+            printf("Division by zero is not allowed, exiting...\n");
+            return 1;
+        }
         break;
     default:
         printf("Invalid operator, exiting...\n");
