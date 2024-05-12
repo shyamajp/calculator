@@ -27,17 +27,11 @@ double divide(double a, double b)
     return a / b;
 }
 
-void debug(char *operator_stack, char *output_queue)
-{
-    printf("=====================================\n");
-    printf("Operator Stack: %s\n", operator_stack);
-    printf("Output Queue: %s\n", output_queue);
-}
-
+// TODO: probably no longer stack with shift?
 struct STACK
 {
     char elm[100]; // TODO: malloc this?
-    char size;
+    int size;
 };
 
 void init(struct STACK *stack)
@@ -95,84 +89,60 @@ void parseInput(char *string)
     printf("Original String: %s\n", string);
 
     struct STACK operator_stack;
+    struct STACK output_queue;
+
+    // initialize
     init(&operator_stack);
-
-    push(&operator_stack, 'a');
-    push(&operator_stack, 'b');
-    push(&operator_stack, 'c');
-
-    first(&operator_stack);
-    last(&operator_stack);
-
-    printf("all elements\n");
-    print(&operator_stack);
-
-    printf("remove last element\n");
-    pop(&operator_stack);
-    print(&operator_stack);
-
-    printf("remove first element\n");
-    shift(&operator_stack);
-    print(&operator_stack);
-}
-
-void parseInput2(char *string)
-{
-    printf("Original String: %s\n", string);
+    init(&output_queue);
 
     // Shunting yard algorithm
-    char *operator_stack = malloc(sizeof(char) * 100);
-    char *operator_stack_ptr = operator_stack;
-
-    char *output_queue = malloc(sizeof(char) * 100);
-    char *output_queue_ptr = output_queue;
-
     for (int i = 0; i < strlen(string); i++)
     {
         if (string[i] == '*' || string[i] == '/')
         {
-            *operator_stack_ptr = string[i];
-            operator_stack_ptr++;
-            debug(operator_stack, output_queue);
+            push(&operator_stack, string[i]);
         }
         else if (string[i] == '+' || string[i] == '-')
         {
-            printf("Top of operator stack: %c\n", *(operator_stack_ptr - 1));
+            char top = first(&operator_stack);
+            printf("Top of operator stack: %c\n", top);
             // if top of operator stack has higher precedence, pop operators in the operator stack to the output queue
-            while (operator_stack_ptr != operator_stack)
+            while (operator_stack.size != -1)
             {
-                *output_queue_ptr = *(operator_stack_ptr - 1);
-                *(operator_stack_ptr - 1) = '\0';
-                output_queue_ptr++;
-                operator_stack_ptr--;
-                debug(operator_stack, output_queue);
+                char operator= pop(&operator_stack);
+                push(&output_queue, operator);
             }
-
-            *operator_stack_ptr = string[i];
-            operator_stack_ptr++;
-            debug(operator_stack, output_queue);
+            // finally push the current operator to the operator stack
+            push(&operator_stack, string[i]);
         }
         // Numbers are always pushed to the output queue
         else
         {
-            *output_queue_ptr = string[i];
-            output_queue_ptr++;
-            debug(operator_stack, output_queue);
+            push(&output_queue, string[i]);
         }
+
+        // For debugging purpose
+        printf("=====================================\n");
+        printf("Operator Stack: ");
+        print(&operator_stack);
+        printf("Output Queue: ");
+        print(&output_queue);
     }
 
-    printf("=====================================\n");
     // pop the remaining operators from the operator stack to the output queue
-    while (operator_stack_ptr != operator_stack)
+    while (operator_stack.size != -1)
     {
-        *output_queue_ptr = *(operator_stack_ptr - 1);
-        *(operator_stack_ptr - 1) = '\0';
-        output_queue_ptr++;
-        operator_stack_ptr--;
-        debug(operator_stack, output_queue);
-    }
 
-    debug(operator_stack, output_queue);
+        char operator= pop(&operator_stack);
+        push(&output_queue, operator);
+
+        // For debugging purpose
+        printf("=====================================\n");
+        printf("Operator Stack: ");
+        print(&operator_stack);
+        printf("Output Queue: ");
+        print(&output_queue);
+    }
 }
 
 int main()
