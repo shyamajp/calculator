@@ -34,7 +34,67 @@ void debug(char *operator_stack, char *output_queue)
     printf("Output Queue: %s\n", output_queue);
 }
 
+struct STACK
+{
+    char elm[100]; // TODO: malloc this?
+    char size;
+};
+
+void init(struct STACK *stack)
+{
+    stack->size = -1;
+}
+
+void print(struct STACK *stack)
+{
+    for (int i = 0; i <= stack->size; i++)
+    {
+        printf("%c", stack->elm[i]);
+    }
+    printf("\n");
+}
+
+void push(struct STACK *stack, char c)
+{
+    stack->size++;
+    stack->elm[stack->size] = c;
+}
+
+// TODO(REFACTOR): can they be combined?
+char pop(struct STACK *stack)
+{
+    char c = stack->elm[stack->size];
+    stack->size--;
+    return c;
+}
+
+char peak(struct STACK *stack)
+{
+    char c = stack->elm[stack->size];
+    printf("%c\n", c);
+    return c;
+}
+
 void parseInput(char *string)
+{
+    printf("Original String: %s\n", string);
+
+    struct STACK operator_stack;
+    init(&operator_stack);
+
+    push(&operator_stack, 'a');
+    push(&operator_stack, 'b');
+    push(&operator_stack, 'c');
+
+    peak(&operator_stack);
+
+    print(&operator_stack);
+
+    pop(&operator_stack);
+    print(&operator_stack);
+}
+
+void parseInput2(char *string)
 {
     printf("Original String: %s\n", string);
 
