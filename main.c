@@ -188,8 +188,8 @@ void parseInput(char *string)
             char top_char = last(&operator_stack);
             struct OPERATOR top = getOperator(top_char);
 
-            // if top of operator stack has higher precedence, pop operators in the operator stack to the output queue
-            while (!isEmpty(&operator_stack) && top_char != '(' && current.precedence < top.precedence && current.associativity == LEFT)
+            while ((!isEmpty(&operator_stack) && top_char != '(') &&
+                   (current.precedence < top.precedence || (current.precedence == top.precedence && current.associativity == LEFT)))
             {
                 printf("%c | Pop stack to output\n", string[i]);
                 char operator= pop(&operator_stack);
