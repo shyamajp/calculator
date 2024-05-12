@@ -60,18 +60,33 @@ void push(struct STACK *stack, char c)
     stack->elm[stack->size] = c;
 }
 
-// TODO(REFACTOR): can they be combined?
-char pop(struct STACK *stack)
+char first(struct STACK *stack)
+{
+    char c = stack->elm[0];
+    return c;
+}
+
+char last(struct STACK *stack)
 {
     char c = stack->elm[stack->size];
+    return c;
+}
+
+char shift(struct STACK *stack)
+{
+    char c = first(stack);
+    for (int i = 0; i < stack->size; i++)
+    {
+        stack->elm[i] = stack->elm[i + 1];
+    }
     stack->size--;
     return c;
 }
 
-char peak(struct STACK *stack)
+char pop(struct STACK *stack)
 {
-    char c = stack->elm[stack->size];
-    printf("%c\n", c);
+    char c = last(stack);
+    stack->size--;
     return c;
 }
 
@@ -86,11 +101,18 @@ void parseInput(char *string)
     push(&operator_stack, 'b');
     push(&operator_stack, 'c');
 
-    peak(&operator_stack);
+    first(&operator_stack);
+    last(&operator_stack);
 
+    printf("all elements\n");
     print(&operator_stack);
 
+    printf("remove last element\n");
     pop(&operator_stack);
+    print(&operator_stack);
+
+    printf("remove first element\n");
+    shift(&operator_stack);
     print(&operator_stack);
 }
 
