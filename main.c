@@ -99,16 +99,15 @@ struct OPERATOR operators[5] = {
     {'^', 3},
 };
 
-int getPrecedence(char c)
+struct OPERATOR getOperator(char c)
 {
     for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
     {
         if (c == operators[i].op)
         {
-            return operators[i].precedence;
+            return operators[i];
         }
     }
-    return -1;
 }
 
 void parseInput(char *string)
@@ -126,11 +125,10 @@ void parseInput(char *string)
     for (int i = 0; i < strlen(string); i++)
     {
         bool isOperator = false;
-        char current = string[i];
 
         for (size_t j = 0; j < sizeof(operators) / sizeof(operators[0]); j++)
         {
-            if (current == operators[j].op)
+            if (string[i] == operators[j].op)
             {
                 isOperator = true;
             }
@@ -138,12 +136,11 @@ void parseInput(char *string)
 
         if (isOperator)
         {
-            int current_precedence = getPrecedence(current);
-            char top = first(&operator_stack);
-            int top_precedence = getPrecedence(top);
+            struct OPERATOR current = getOperator(string[i]);
+            struct OPERATOR top = getOperator(first(&operator_stack));
 
             // if top of operator stack has higher precedence, pop operators in the operator stack to the output queue
-            if (current_precedence <= top_precedence)
+            if (current.precedence <= top.precedence)
             {
                 while (operator_stack.size != -1)
                 {
@@ -152,12 +149,12 @@ void parseInput(char *string)
                 }
             }
 
-            push(&operator_stack, current);
+            push(&operator_stack, current.op);
         }
         // Numbers are always pushed to the output queue
         else
         {
-            push(&output_queue, current);
+            push(&output_queue, string[i]);
         }
 
         // For debugging purpose
