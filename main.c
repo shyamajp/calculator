@@ -85,6 +85,11 @@ char pop(struct STACK *stack)
     return c;
 }
 
+bool isEmpty(struct STACK *stack)
+{
+    return stack->size == -1;
+}
+
 enum ASSOCIATIVITY
 {
     NONE,
@@ -148,13 +153,11 @@ void parseInput(char *string)
             struct OPERATOR top = getOperator(first(&operator_stack));
 
             // if top of operator stack has higher precedence, pop operators in the operator stack to the output queue
-            if (current.precedence <= top.precedence && current.associativity == LEFT)
+            while (!isEmpty(&operator_stack) && current.precedence <= top.precedence && current.associativity == LEFT)
             {
-                while (operator_stack.size != -1)
-                {
-                    char operator= pop(&operator_stack);
-                    push(&output_queue, operator);
-                }
+                char operator= pop(&operator_stack);
+                push(&output_queue, operator);
+                top = getOperator(first(&operator_stack));
             }
 
             push(&operator_stack, current.op);
