@@ -3,6 +3,8 @@
 #include <string.h>
 #include <stdbool.h>
 
+// TODO globak variables for parentheses etc?
+
 double add(double a, double b)
 {
     return a + b;
@@ -125,6 +127,52 @@ struct OPERATOR getOperator(char c)
     }
 }
 
+// FIXME 1+23*456 -> {1, +, 23, *, 456}
+void tokenize(char *string)
+{
+    char ops[7] = "+-*/^";
+    char *tokens[10];
+    int token_index = 0;
+
+    printf("Tokenizing string: %s\n", string);
+    for (char c = *string; c != '\0'; c = *++string)
+    {
+        // operators
+        if (strchr(ops, c) != NULL)
+        {
+            printf("Operator: %c\n", c);
+            // tokens[token_index++] = {c, '\0'}; IDK how to do this
+        }
+        // numbers
+        else
+        {
+            // TODO(refactor): messy stuff but idea is there
+            char *num = (char *)malloc(sizeof(char) * 10);
+            int i = 0;
+
+            char next_tmp = *++string;
+            num[i++] = c;
+            while (strchr(ops, next_tmp) == NULL)
+            {
+                num[i++] = next_tmp;
+                c = next_tmp;
+                next_tmp = *++string;
+            };
+            printf("Number: %s\n", num);
+            // tokens[token_index++][0] = num; IDK how to do this
+            next_tmp = *--string; // reset
+        }
+    }
+
+    print("tokens: ");
+    for (int i = 0; i < 3; i++)
+    {
+        printf("%s\n", arr[i]);
+    }
+}
+
+// infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 342*15−23^^÷+)
+// TODO(UPDATE) to use string instead of char so that we can have multi-digit numbers
 void parseInput(char *string)
 {
     printf("Original String: %s\n", string);
@@ -251,8 +299,10 @@ int main()
     // scanf("%s", input);
     // char exp[100] = "a+b*c-d";       // abc*+d-
     char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
+    // char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
 
     parseInput(exp);
+    // tokenize(exp);
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
 
     // printf("First number: %f\n", a);
