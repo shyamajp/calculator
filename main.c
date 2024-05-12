@@ -85,18 +85,26 @@ char pop(struct STACK *stack)
     return c;
 }
 
+enum ASSOCIATIVITY
+{
+    NONE,
+    LEFT,
+    RIGHT
+};
+
 struct OPERATOR
 {
     char op;
     int precedence;
+    enum ASSOCIATIVITY associativity;
 };
 
 struct OPERATOR operators[5] = {
-    {'+', 1},
-    {'-', 1},
-    {'*', 2},
-    {'/', 2},
-    {'^', 3},
+    {'+', 1, LEFT},
+    {'-', 1, LEFT},
+    {'*', 2, LEFT},
+    {'/', 2, LEFT},
+    {'^', 3, RIGHT},
 };
 
 struct OPERATOR getOperator(char c)
@@ -140,7 +148,7 @@ void parseInput(char *string)
             struct OPERATOR top = getOperator(first(&operator_stack));
 
             // if top of operator stack has higher precedence, pop operators in the operator stack to the output queue
-            if (current.precedence <= top.precedence)
+            if (current.precedence <= top.precedence && current.associativity == LEFT)
             {
                 while (operator_stack.size != -1)
                 {
@@ -192,7 +200,8 @@ int main()
 
     // printf("Enter a math expression (e.g. 1+1): ");
     // scanf("%s", input);
-    char exp[100] = "a+b*c-d"; // abc*+d-
+    // char exp[100] = "a+b*c-d";       // abc*+d-
+    char exp[100] = "3+4*2/(1-5)^2"; // 342*15-2^/+
 
     parseInput(exp);
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
