@@ -185,7 +185,7 @@ void parseInput(char *string)
         else if (isOperator)
         {
             struct OPERATOR current = getOperator(string[i]);
-            char top_char = first(&operator_stack);
+            char top_char = last(&operator_stack);
             struct OPERATOR top = getOperator(top_char);
 
             // if top of operator stack has higher precedence, pop operators in the operator stack to the output queue
