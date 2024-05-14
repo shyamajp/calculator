@@ -134,12 +134,12 @@ struct TOKEN
 {
     enum
     {
-        is_float,
-        is_char
+        is_number,
+        is_operator
     } type;
     union
     {
-        float fval;
+        double fval;
         char cval;
     } val;
 };
@@ -158,7 +158,7 @@ TOKEN *tokenize(char *string)
         // operators
         if (strchr(ops, c) != NULL)
         {
-            tokens[token_index].type = is_char;
+            tokens[token_index].type = is_operator;
             tokens[token_index++].val.cval = c;
             printf("Operator: %c\n", c);
         }
@@ -183,7 +183,7 @@ TOKEN *tokenize(char *string)
             double d;
             sscanf(num, "%lf", &d);
 
-            tokens[token_index].type = is_float;
+            tokens[token_index].type = is_number;
             tokens[token_index++].val.fval = d;
             printf("Number: %lf\n", d);
             next_tmp = *--string; // reset
@@ -333,11 +333,11 @@ int main()
     {
         switch (tokens[i].type)
         {
-        case is_float:
+        case is_number:
             printf("%f\n", tokens[i].val.fval);
             // Do stuff for float, using my_array[n].fval
             break;
-        case is_char:
+        case is_operator:
             printf("%c\n", tokens[i].val.cval);
             // Do stuff for char, using my_array[n].cvar
             break;
