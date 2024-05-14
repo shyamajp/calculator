@@ -146,25 +146,21 @@ struct TOKEN
 
 // tokenize string into numbers and operators
 // 1+23*456 -> {"1", "+", "23", "*", "456"}
-char **tokenize(char *string)
+TOKEN *tokenize(char *string)
 {
     printf("Tokenizing string: %s\n", string);
 
     char ops[7] = "+-*/^";
-    char **tokens;
-    tokens = malloc(10 * sizeof(char *));
+    TOKEN *tokens = malloc(10 * sizeof(TOKEN));
     int token_index = 0;
     for (char c = *string; c != '\0'; c = *++string)
     {
         // operators
         if (strchr(ops, c) != NULL)
         {
+            tokens[token_index].type = is_char;
+            tokens[token_index++].val.cval = c;
             printf("Operator: %c\n", c);
-
-            char *op = (char *)malloc(sizeof(char) * 2);
-            op[0] = c;
-            op[1] = '\0';
-            tokens[token_index++] = op;
         }
         // numbers
         else
@@ -182,8 +178,14 @@ char **tokenize(char *string)
                 next_tmp = *++string;
             };
             num[num_index] = '\0';
-            printf("Number: %s\n", num);
-            tokens[token_index++] = num;
+
+            // convert string to double
+            double d;
+            sscanf(num, "%lf", &d);
+
+            tokens[token_index].type = is_float;
+            tokens[token_index++].val.fval = d;
+            printf("Number: %lf\n", d);
             next_tmp = *--string; // reset
         }
     }
@@ -318,21 +320,31 @@ int main()
     // scanf("%s", input);
     // char exp[100] = "a+b*c-d";       // abc*+d-
     // char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
-    char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
+    char exp[100] = "1+23*456.78"; // {1, +, 23, *, 456}
 
     // parseInput(exp);
-    char **tokens = tokenize(exp);
+    TOKEN *tokens = tokenize(exp);
 
-    int size = 0;
-    while (tokens[size] != NULL)
-    {
-        size++;
-    }
+    // TODO: how to get size of array of structs?
+    int size = 5;
     printf("size: %d\n", size);
 
     for (int i = 0; i < size; i++)
     {
-        printf("%s\n", tokens[i]);
+        switch (tokens[i].type)
+        {
+        case is_float:
+            printf("%f\n", tokens[i].val.fval);
+            // Do stuff for float, using my_array[n].fval
+            break;
+        case is_char:
+            printf("%c\n", tokens[i].val.cval);
+            // Do stuff for char, using my_array[n].cvar
+            break;
+        default:
+            printf("Invalid token type, exiting...\n");
+            exit(1);
+        }
     }
 
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
