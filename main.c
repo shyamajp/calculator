@@ -127,48 +127,48 @@ struct OPERATOR getOperator(char c)
     }
 }
 
-// FIXME 1+23*456 -> {1, +, 23, *, 456}
-void tokenize(char *string)
+// tokenize string into numbers and operators
+// 1+23*456 -> {"1", "+", "23", "*", "456"}
+char **tokenize(char *string)
 {
-    char ops[7] = "+-*/^";
-    char *tokens[10];
-    int token_index = 0;
-
     printf("Tokenizing string: %s\n", string);
+
+    char ops[7] = "+-*/^";
+    char **tokens;
+    tokens = malloc(10 * sizeof(char *));
+    int token_index = 0;
     for (char c = *string; c != '\0'; c = *++string)
     {
         // operators
         if (strchr(ops, c) != NULL)
         {
             printf("Operator: %c\n", c);
-            // tokens[token_index++] = {c, '\0'}; IDK how to do this
+
+            char op[2] = {c, '\0'};
+            tokens[token_index++] = op[0];
         }
         // numbers
         else
         {
             // TODO(refactor): messy stuff but idea is there
             char *num = (char *)malloc(sizeof(char) * 10);
-            int i = 0;
+            int num_index = 0;
 
             char next_tmp = *++string;
-            num[i++] = c;
+            num[num_index++] = c;
             while (strchr(ops, next_tmp) == NULL)
             {
-                num[i++] = next_tmp;
+                num[num_index++] = next_tmp;
                 c = next_tmp;
                 next_tmp = *++string;
             };
+            num[num_index] = '\0';
             printf("Number: %s\n", num);
-            // tokens[token_index++][0] = num; IDK how to do this
+            tokens[token_index++] = num;
             next_tmp = *--string; // reset
         }
     }
-
-    print("tokens: ");
-    for (int i = 0; i < 3; i++)
-    {
-        printf("%s\n", arr[i]);
-    }
+    return tokens;
 }
 
 // infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 342*15−23^^÷+)
@@ -298,11 +298,18 @@ int main()
     // printf("Enter a math expression (e.g. 1+1): ");
     // scanf("%s", input);
     // char exp[100] = "a+b*c-d";       // abc*+d-
-    char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
-    // char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
+    // char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
+    char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
 
-    parseInput(exp);
-    // tokenize(exp);
+    // parseInput(exp);
+    char **tokens = tokenize(exp);
+
+    printf("tokens: %s\n", tokens[0]);
+    printf("tokens: %s\n", tokens[1]);
+    printf("tokens: %s\n", tokens[2]);
+    printf("tokens: %s\n", tokens[3]);
+    printf("tokens: %s\n", tokens[4]);
+
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
 
     // printf("First number: %f\n", a);
