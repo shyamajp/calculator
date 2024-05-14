@@ -129,6 +129,7 @@ OPERATOR getOperator(char c)
     }
 }
 
+// tagged union
 typedef struct TOKEN TOKEN;
 struct TOKEN
 {
