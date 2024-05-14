@@ -144,8 +144,10 @@ char **tokenize(char *string)
         {
             printf("Operator: %c\n", c);
 
-            char op[2] = {c, '\0'};
-            tokens[token_index++] = op[0];
+            char *op = (char *)malloc(sizeof(char) * 2);
+            op[0] = c;
+            op[1] = '\0';
+            tokens[token_index++] = op;
         }
         // numbers
         else
