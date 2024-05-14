@@ -129,6 +129,21 @@ OPERATOR getOperator(char c)
     }
 }
 
+typedef struct TOKEN TOKEN;
+struct TOKEN
+{
+    enum
+    {
+        is_float,
+        is_char
+    } type;
+    union
+    {
+        float fval;
+        char cval;
+    } val;
+};
+
 // tokenize string into numbers and operators
 // 1+23*456 -> {"1", "+", "23", "*", "456"}
 char **tokenize(char *string)
