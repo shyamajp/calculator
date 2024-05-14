@@ -31,18 +31,19 @@ double divide(double a, double b)
 }
 
 // TODO: probably no longer stack with shift?
+typedef struct STACK STACK;
 struct STACK
 {
     char elm[100]; // TODO: malloc this?
     int size;
 };
 
-void init(struct STACK *stack)
+void init(STACK *stack)
 {
     stack->size = -1;
 }
 
-void print(struct STACK *stack)
+void print(STACK *stack)
 {
     for (int i = 0; i <= stack->size; i++)
     {
@@ -51,25 +52,25 @@ void print(struct STACK *stack)
     printf("\n");
 }
 
-void push(struct STACK *stack, char c)
+void push(STACK *stack, char c)
 {
     stack->size++;
     stack->elm[stack->size] = c;
 }
 
-char first(struct STACK *stack)
+char first(STACK *stack)
 {
     char c = stack->elm[0];
     return c;
 }
 
-char last(struct STACK *stack)
+char last(STACK *stack)
 {
     char c = stack->elm[stack->size];
     return c;
 }
 
-char shift(struct STACK *stack)
+char shift(STACK *stack)
 {
     char c = first(stack);
     for (int i = 0; i < stack->size; i++)
@@ -80,14 +81,14 @@ char shift(struct STACK *stack)
     return c;
 }
 
-char pop(struct STACK *stack)
+char pop(STACK *stack)
 {
     char c = last(stack);
     stack->size--;
     return c;
 }
 
-bool isEmpty(struct STACK *stack)
+bool isEmpty(STACK *stack)
 {
     return stack->size == -1;
 }
@@ -99,6 +100,7 @@ enum ASSOCIATIVITY
     RIGHT
 };
 
+typedef struct OPERATOR OPERATOR;
 struct OPERATOR
 {
     char op;
@@ -106,7 +108,7 @@ struct OPERATOR
     enum ASSOCIATIVITY associativity;
 };
 
-struct OPERATOR operators[7] = {
+OPERATOR operators[7] = {
     {'+', 1, LEFT},
     {'-', 1, LEFT},
     {'*', 2, LEFT},
@@ -116,7 +118,7 @@ struct OPERATOR operators[7] = {
     {')', 0, NONE},
 };
 
-struct OPERATOR getOperator(char c)
+OPERATOR getOperator(char c)
 {
     for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
     {
@@ -179,8 +181,8 @@ void parseInput(char *string)
 {
     printf("Original String: %s\n", string);
 
-    struct STACK operator_stack;
-    struct STACK output_queue;
+    STACK operator_stack;
+    STACK output_queue;
 
     // initialize
     init(&operator_stack);
@@ -234,9 +236,9 @@ void parseInput(char *string)
         // ✅ Operators (+, -, *, /, ^): from the operator stack to the output queue (while ...) + push to the operator stack
         else if (isOperator)
         {
-            struct OPERATOR current = getOperator(string[i]);
+            OPERATOR current = getOperator(string[i]);
             char top_char = last(&operator_stack);
-            struct OPERATOR top = getOperator(top_char);
+            OPERATOR top = getOperator(top_char);
 
             while ((!isEmpty(&operator_stack) && top_char != '(') &&
                    (current.precedence < top.precedence || (current.precedence == top.precedence && current.associativity == LEFT)))
@@ -306,11 +308,17 @@ int main()
     // parseInput(exp);
     char **tokens = tokenize(exp);
 
-    printf("tokens: %s\n", tokens[0]);
-    printf("tokens: %s\n", tokens[1]);
-    printf("tokens: %s\n", tokens[2]);
-    printf("tokens: %s\n", tokens[3]);
-    printf("tokens: %s\n", tokens[4]);
+    int size = 0;
+    while (tokens[size] != NULL)
+    {
+        size++;
+    }
+    printf("size: %d\n", size);
+
+    for (int i = 0; i < size; i++)
+    {
+        printf("%s\n", tokens[i]);
+    }
 
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
 
