@@ -147,21 +147,25 @@ struct TOKEN
 
 // tokenize string into numbers and operators
 // 1+23*456 -> {"1", "+", "23", "*", "456"}
-TOKEN *tokenize(char *string)
+char **tokenize(char *string)
 {
     printf("Tokenizing string: %s\n", string);
 
     char ops[7] = "+-*/^";
-    TOKEN *tokens = malloc(10 * sizeof(TOKEN));
+    char **tokens;
+    tokens = malloc(10 * sizeof(char *));
     int token_index = 0;
     for (char c = *string; c != '\0'; c = *++string)
     {
         // operators
         if (strchr(ops, c) != NULL)
         {
-            tokens[token_index].type = is_operator;
-            tokens[token_index++].val.cval = c;
             printf("Operator: %c\n", c);
+
+            char *op = (char *)malloc(sizeof(char) * 2);
+            op[0] = c;
+            op[1] = '\0';
+            tokens[token_index++] = op;
         }
         // numbers
         else
@@ -179,14 +183,8 @@ TOKEN *tokenize(char *string)
                 next_tmp = *++string;
             };
             num[num_index] = '\0';
-
-            // convert string to double
-            double d;
-            sscanf(num, "%lf", &d);
-
-            tokens[token_index].type = is_number;
-            tokens[token_index++].val.fval = d;
-            printf("Number: %lf\n", d);
+            printf("Number: %s\n", num);
+            tokens[token_index++] = num;
             next_tmp = *--string; // reset
         }
     }
@@ -344,11 +342,23 @@ int main()
     // scanf("%s", input);
     // char exp[100] = "a+b*c-d";       // abc*+d-
     // char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
-    char exp[100] = "1+23*456.78"; // {1, +, 23, *, 456}
+    char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
 
     // parseInput(exp);
-    TOKEN *tokens = tokenize(exp);
-    printTokens(tokens);
+    char **tokens = tokenize(exp);
+
+    int size = 0;
+    while (tokens[size] != NULL)
+    {
+        size++;
+    }
+    printf("size: %d\n", size);
+
+    for (int i = 0; i < size; i++)
+    {
+        printf("%s\n", tokens[i]);
+    }
+
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
 
     // printf("First number: %f\n", a);
