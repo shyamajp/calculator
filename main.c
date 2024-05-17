@@ -193,6 +193,29 @@ TOKEN *tokenize(char *string)
     return tokens;
 }
 
+void printTokens(TOKEN *tokens)
+{
+    printf("Printing tokens...\n");
+    // TODO: how to get size?
+    for (int i = 0; i < 5; i++)
+    {
+        switch (tokens[i].type)
+        {
+        case is_number:
+            printf("%f\n", tokens[i].val.fval);
+            // Do stuff for float, using my_array[n].fval
+            break;
+        case is_operator:
+            printf("%c\n", tokens[i].val.cval);
+            // Do stuff for char, using my_array[n].cvar
+            break;
+        default:
+            printf("Invalid token type, exiting...\n");
+            exit(1);
+        }
+    }
+}
+
 // infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 342*15−23^^÷+)
 // TODO(UPDATE) to use string instead of char so that we can have multi-digit numbers
 void parseInput(char *string)
@@ -325,29 +348,7 @@ int main()
 
     // parseInput(exp);
     TOKEN *tokens = tokenize(exp);
-
-    // TODO: how to get size of array of structs?
-    int size = 5;
-    printf("size: %d\n", size);
-
-    for (int i = 0; i < size; i++)
-    {
-        switch (tokens[i].type)
-        {
-        case is_number:
-            printf("%f\n", tokens[i].val.fval);
-            // Do stuff for float, using my_array[n].fval
-            break;
-        case is_operator:
-            printf("%c\n", tokens[i].val.cval);
-            // Do stuff for char, using my_array[n].cvar
-            break;
-        default:
-            printf("Invalid token type, exiting...\n");
-            exit(1);
-        }
-    }
-
+    printTokens(tokens);
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
 
     // printf("First number: %f\n", a);
