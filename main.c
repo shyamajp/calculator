@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdbool.h>
+#include <math.h>
 
 const char LEFT_PARENTHESIS = '(';
 const char RIGHT_PARENTHESIS = ')';
@@ -260,6 +261,74 @@ char *parseInput(char *infix)
     return output_queue.elm;
 }
 
+// TODO: welp this wont work without changing the type of stack elements :/
+double evaluatePostfix(char *postfix)
+{
+    STACK stack;
+    init(&stack);
+
+    for (int i = 0; i < strlen(postfix); i++)
+    {
+        double result;
+
+        // Deliminater: skip
+        if (postfix[i] == DELIMITER)
+        {
+            continue;
+        }
+        // Number: push to stack
+        else if (!isOperator(postfix[i]))
+        {
+            push(&stack, postfix[i]);
+        }
+        // Operator: perform operation with the last two elements in the stack
+        else
+        {
+            // pop two elements from stack
+            char *yc = pop(&stack);
+            char *xc = pop(&stack);
+
+            double x, y;
+
+            sscanf(&xc, "%lf", &x);
+            sscanf(&yc, "%lf", &y);
+
+            // perform operation with current operator on both the operands
+            switch (postfix[i])
+            {
+            case PLUS:
+                result = x + y;
+                break;
+            case MINUS:
+                result = x - y;
+                break;
+            case ASTERISK:
+                result = x * y;
+                break;
+            case SLASH:
+                if (y == 0)
+                {
+                    printf("Division by zero, exiting...\n");
+                    exit(1);
+                }
+                result = x / y;
+                break;
+            case CARET:
+                result = pow(x, y);
+                break;
+            default:
+                printf("Invalid operator, exiting...\n");
+                exit(1);
+            }
+
+            // push the result back into the stack
+            push(&stack, result);
+        }
+
+        return result;
+    }
+}
+
 int main()
 {
     // // ask for user input e.g. 1+1
@@ -274,10 +343,13 @@ int main()
     // char exp[100] = "a+b*c-d";       // abc*+d-
     char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
     // char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
+    // char *postfix = "2,3,1,*,+,9,-";
 
     char *postfix = parseInput(exp);
 
     printf("Postfix: %s\n", postfix);
 
+    // double result = evaluatePostfix(postfix);
+    // printf("Result: %lf\n", result);
     return 0;
 }
