@@ -3,7 +3,16 @@
 #include <string.h>
 #include <stdbool.h>
 
-// TODO globak variables for parentheses etc?
+const char LEFT_PARENTHESIS = '(';
+const char RIGHT_PARENTHESIS = ')';
+const char PLUS = '+';
+const char MINUS = '-';
+const char ASTERISK = '*';
+const char SLASH = '/';
+const char CARET = '^';
+
+const char DELIMITER = ',';
+const char END = '\0';
 
 double add(double a, double b)
 {
@@ -77,7 +86,7 @@ char shift(STACK *stack)
     {
         stack->elm[i] = stack->elm[i + 1];
     }
-    stack->elm[stack->size] = '\0';
+    stack->elm[stack->size] = END;
     stack->size--;
     return c;
 }
@@ -85,7 +94,7 @@ char shift(STACK *stack)
 char pop(STACK *stack)
 {
     char c = last(stack);
-    stack->elm[stack->size] = '\0';
+    stack->elm[stack->size] = END;
     stack->size--;
     return c;
 }
@@ -111,13 +120,13 @@ struct OPERATOR
 };
 
 OPERATOR operators[7] = {
-    {'+', 1, LEFT},
-    {'-', 1, LEFT},
-    {'*', 2, LEFT},
-    {'/', 2, LEFT},
-    {'^', 3, RIGHT},
-    {'(', 0, NONE},
-    {')', 0, NONE},
+    {PLUS, 1, LEFT},
+    {MINUS, 1, LEFT},
+    {ASTERISK, 2, LEFT},
+    {SLASH, 2, LEFT},
+    {CARET, 3, RIGHT},
+    {LEFT_PARENTHESIS, 0, NONE},
+    {RIGHT_PARENTHESIS, 0, NONE},
 };
 
 OPERATOR getOperator(char c)
@@ -157,7 +166,7 @@ char **tokenize(char *string)
     char **tokens;
     tokens = malloc(10 * sizeof(char *));
     int token_index = 0;
-    for (char c = *string; c != '\0'; c = *++string)
+    for (char c = *string; c != END; c = *++string)
     {
         // operators
         if (strchr(ops, c) != NULL)
@@ -166,7 +175,7 @@ char **tokenize(char *string)
 
             char *op = (char *)malloc(sizeof(char) * 2);
             op[0] = c;
-            op[1] = '\0';
+            op[1] = END;
             tokens[token_index++] = op;
         }
         // numbers
@@ -184,7 +193,7 @@ char **tokenize(char *string)
                 c = next_tmp;
                 next_tmp = *++string;
             };
-            num[num_index] = '\0';
+            num[num_index] = END;
             printf("Number: %s\n", num);
             tokens[token_index++] = num;
             next_tmp = *--string; // reset
@@ -241,16 +250,16 @@ char *parseInput(char *string)
             }
         }
         // ✅ left parenthesis: always push to the output queue
-        if (string[i] == '(')
+        if (string[i] == LEFT_PARENTHESIS)
         {
             printf("%c | Push token to stack\n", string[i]);
             push(&operator_stack, string[i]);
         }
         // ✅ right parenthesis: pop operators in the operator stack to the output queue until left parenthesis
-        else if (string[i] == ')')
+        else if (string[i] == RIGHT_PARENTHESIS)
         {
             char top_char = last(&operator_stack);
-            while (top_char != '(')
+            while (top_char != LEFT_PARENTHESIS)
             {
                 // 🚨 assert: the operator stack is not empty
                 if (isEmpty(&operator_stack))
@@ -261,13 +270,13 @@ char *parseInput(char *string)
                 char operator= pop(&operator_stack);
                 printf("%c | Add token to output\n", string[i]);
                 push(&output_queue, operator);
-                push(&output_queue, ',');
+                push(&output_queue, DELIMITER);
 
                 top_char = last(&operator_stack);
             }
 
             // 🚨 assert: there is a left parenthesis at the top of the operator stack
-            if (top_char != '(')
+            if (top_char != LEFT_PARENTHESIS)
             {
                 printf("Invalid expression, exiting...\n");
                 exit(1);
@@ -282,13 +291,13 @@ char *parseInput(char *string)
             char top_char = last(&operator_stack);
             OPERATOR top = getOperator(top_char);
 
-            while ((!isEmpty(&operator_stack) && top_char != '(') &&
+            while ((!isEmpty(&operator_stack) && top_char != LEFT_PARENTHESIS) &&
                    (current.precedence < top.precedence || (current.precedence == top.precedence && current.associativity == LEFT)))
             {
                 printf("%c | Pop stack to output\n", string[i]);
                 char operator= pop(&operator_stack);
                 push(&output_queue, operator);
-                push(&output_queue, ',');
+                push(&output_queue, DELIMITER);
                 top = getOperator(first(&operator_stack));
             }
 
@@ -306,7 +315,7 @@ char *parseInput(char *string)
             }
             i--;
             // comma indicates the end of a number
-            push(&output_queue, ',');
+            push(&output_queue, DELIMITER);
         }
 
         // For debugging purpose
@@ -321,7 +330,7 @@ char *parseInput(char *string)
     while (!isEmpty(&operator_stack))
     {
         // 🚨 assert: the operator on top of the stack is not a (left) parenthesis
-        if (last(&operator_stack) == '(')
+        if (last(&operator_stack) == LEFT_PARENTHESIS)
         {
             printf("Invalid expression, exiting...\n");
             exit(1);
@@ -330,7 +339,7 @@ char *parseInput(char *string)
         printf("%c | Pop stack to output\n", last(&operator_stack));
         char operator= pop(&operator_stack);
         push(&output_queue, operator);
-        push(&output_queue, ',');
+        push(&output_queue, DELIMITER);
 
         // For debugging purpose
         printf("output: ");
