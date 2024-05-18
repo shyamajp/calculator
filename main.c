@@ -152,11 +152,14 @@ bool isOperator(char c)
     return false;
 }
 
-// infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 3,4,2,*,1,5,−2,3,^,^,÷,+)
-char *parseInput(char *string)
+/**
+ * @brief Parse infix expression to postfix expression
+ * @param char* infix expression
+ * @return char* postfix expression separated by DELIMITER
+ * @example "3+4*2/(1-5)^2^3" -> "3,4,2,*,1,5,−2,3,^,^,÷,+"
+ */
+char *parseInput(char *infix)
 {
-    printf("Original String: %s\n", string);
-
     STACK operator_stack;
     STACK output_queue;
 
@@ -165,17 +168,17 @@ char *parseInput(char *string)
     init(&output_queue);
 
     // Shunting yard algorithm
-    for (int i = 0; i < strlen(string); i++)
+    for (int i = 0; i < strlen(infix); i++)
     {
-        bool cIsOperator = isOperator(string[i]);
+        bool cIsOperator = isOperator(infix[i]);
         // ✅ left parenthesis: always push to the output queue
-        if (string[i] == LEFT_PARENTHESIS)
+        if (infix[i] == LEFT_PARENTHESIS)
         {
-            printf("%c | Push token to stack\n", string[i]);
-            push(&operator_stack, string[i]);
+            printf("%c | Push token to stack\n", infix[i]);
+            push(&operator_stack, infix[i]);
         }
         // ✅ right parenthesis: pop operators in the operator stack to the output queue until left parenthesis
-        else if (string[i] == RIGHT_PARENTHESIS)
+        else if (infix[i] == RIGHT_PARENTHESIS)
         {
             char top_char = last(&operator_stack);
             while (top_char != LEFT_PARENTHESIS)
@@ -187,7 +190,7 @@ char *parseInput(char *string)
                     exit(1);
                 }
                 char operator= pop(&operator_stack);
-                printf("%c | Add token to output\n", string[i]);
+                printf("%c | Add token to output\n", infix[i]);
                 push(&output_queue, operator);
                 push(&output_queue, DELIMITER);
 
@@ -200,36 +203,36 @@ char *parseInput(char *string)
                 printf("Invalid expression, exiting...\n");
                 exit(1);
             }
-            printf("%c | Pop stack\n", string[i]);
+            printf("%c | Pop stack\n", infix[i]);
             pop(&operator_stack);
         }
         // ✅ Operators (+, -, *, /, ^): from the operator stack to the output queue (while ...) + push to the operator stack
         else if (cIsOperator)
         {
-            OPERATOR current = getOperator(string[i]);
+            OPERATOR current = getOperator(infix[i]);
             char top_char = last(&operator_stack);
             OPERATOR top = getOperator(top_char);
 
             while ((!isEmpty(&operator_stack) && top_char != LEFT_PARENTHESIS) &&
                    (current.precedence < top.precedence || (current.precedence == top.precedence && current.associativity == LEFT)))
             {
-                printf("%c | Pop stack to output\n", string[i]);
+                printf("%c | Pop stack to output\n", infix[i]);
                 char operator= pop(&operator_stack);
                 push(&output_queue, operator);
                 push(&output_queue, DELIMITER);
                 top = getOperator(first(&operator_stack));
             }
 
-            printf("%c | Push token to stack\n", string[i]);
+            printf("%c | Push token to stack\n", infix[i]);
             push(&operator_stack, current.op);
         }
         // ✅ number: to the output queue
         else
         {
-            while (string[i] >= '0' && string[i] <= '9' || string[i] == '.')
+            while (infix[i] >= '0' && infix[i] <= '9' || infix[i] == '.')
             {
-                printf("%c | Add token to output\n", string[i]);
-                push(&output_queue, string[i]);
+                printf("%c | Add token to output\n", infix[i]);
+                push(&output_queue, infix[i]);
                 i++;
             }
             i--;
