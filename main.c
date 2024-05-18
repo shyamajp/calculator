@@ -77,6 +77,7 @@ char shift(STACK *stack)
     {
         stack->elm[i] = stack->elm[i + 1];
     }
+    stack->elm[stack->size] = '\0';
     stack->size--;
     return c;
 }
@@ -84,6 +85,7 @@ char shift(STACK *stack)
 char pop(STACK *stack)
 {
     char c = last(stack);
+    stack->elm[stack->size] = '\0';
     stack->size--;
     return c;
 }
@@ -214,9 +216,9 @@ void printTokens(TOKEN *tokens)
     }
 }
 
-// infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 342*15−23^^÷+)
+// infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 3,4,2,*,1,5,−2,3,^,^,÷,+)
 // TODO(UPDATE) to use string instead of char so that we can have multi-digit numbers
-void parseInput(char *string)
+char *parseInput(char *string)
 {
     printf("Original String: %s\n", string);
 
@@ -259,6 +261,7 @@ void parseInput(char *string)
                 char operator= pop(&operator_stack);
                 printf("%c | Add token to output\n", string[i]);
                 push(&output_queue, operator);
+                push(&output_queue, ',');
 
                 top_char = last(&operator_stack);
             }
@@ -285,6 +288,7 @@ void parseInput(char *string)
                 printf("%c | Pop stack to output\n", string[i]);
                 char operator= pop(&operator_stack);
                 push(&output_queue, operator);
+                push(&output_queue, ',');
                 top = getOperator(first(&operator_stack));
             }
 
@@ -294,8 +298,15 @@ void parseInput(char *string)
         // ✅ number: to the output queue
         else
         {
-            printf("%c | Add token to output\n", string[i]);
-            push(&output_queue, string[i]);
+            while (string[i] >= '0' && string[i] <= '9' || string[i] == '.')
+            {
+                printf("%c | Add token to output\n", string[i]);
+                push(&output_queue, string[i]);
+                i++;
+            }
+            i--;
+            // comma indicates the end of a number
+            push(&output_queue, ',');
         }
 
         // For debugging purpose
@@ -319,6 +330,7 @@ void parseInput(char *string)
         printf("%c | Pop stack to output\n", last(&operator_stack));
         char operator= pop(&operator_stack);
         push(&output_queue, operator);
+        push(&output_queue, ',');
 
         // For debugging purpose
         printf("output: ");
@@ -327,6 +339,14 @@ void parseInput(char *string)
         print(&operator_stack);
         printf("=====================================\n");
     }
+    // remove the last comma
+    pop(&output_queue);
+
+    // For debugging purpose
+    printf("FINAL: ");
+    print(&output_queue);
+
+    return output_queue.elm;
 }
 
 int main()
@@ -341,23 +361,26 @@ int main()
     // printf("Enter a math expression (e.g. 1+1): ");
     // scanf("%s", input);
     // char exp[100] = "a+b*c-d";       // abc*+d-
-    // char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
-    char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
+    char exp[100] = "3+4*2/(1-5)^2^3"; // 342*15-2^/+
+    // char exp[100] = "1+23*456"; // {1, +, 23, *, 456}
 
-    // parseInput(exp);
-    char **tokens = tokenize(exp);
+    char *postfix = parseInput(exp);
 
-    int size = 0;
-    while (tokens[size] != NULL)
-    {
-        size++;
-    }
-    printf("size: %d\n", size);
+    printf("Postfix: %s\n", postfix);
 
-    for (int i = 0; i < size; i++)
-    {
-        printf("%s\n", tokens[i]);
-    }
+    // char **tokens = tokenize(exp);
+
+    // int size = 0;
+    // while (tokens[size] != NULL)
+    // {
+    //     size++;
+    // }
+    // printf("size: %d\n", size);
+
+    // for (int i = 0; i < size; i++)
+    // {
+    //     printf("%s\n", tokens[i]);
+    // }
 
     // sscanf(input, "%lf%c%lf", &a, &operator, & b);
 
