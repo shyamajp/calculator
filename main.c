@@ -14,31 +14,6 @@ const char CARET = '^';
 const char DELIMITER = ',';
 const char END = '\0';
 
-double add(double a, double b)
-{
-    return a + b;
-}
-
-double subtract(double a, double b)
-{
-    return a - b;
-}
-
-double multiply(double a, double b)
-{
-    return a * b;
-}
-
-double divide(double a, double b)
-{
-    if (b == 0)
-    {
-        printf("Division by zero is not allowed, exiting...\n");
-        exit(1);
-    }
-    return a / b;
-}
-
 // TODO: probably no longer stack with shift?
 typedef struct STACK STACK;
 struct STACK
@@ -152,6 +127,11 @@ bool isOperator(char c)
     return false;
 }
 
+bool isNumber(char c)
+{
+    return (c >= '0' && c <= '9') || c == '.';
+}
+
 /**
  * @brief Parse infix expression to postfix expression
  * @param char* infix expression
@@ -229,7 +209,7 @@ char *parseInput(char *infix)
         // ✅ number: to the output queue
         else
         {
-            while (infix[i] >= '0' && infix[i] <= '9' || infix[i] == '.')
+            while (isNumber(infix[i]))
             {
                 printf("%c | Add token to output\n", infix[i]);
                 push(&output_queue, infix[i]);
