@@ -140,6 +140,18 @@ OPERATOR getOperator(char c)
     }
 }
 
+bool isOperator(char c)
+{
+    for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
+    {
+        if (c == operators[i].op)
+        {
+            return true;
+        }
+    }
+    return false;
+}
+
 // infix to postfix (e.g. 3+4*2/(1-5)^2^3 -> 3,4,2,*,1,5,−2,3,^,^,÷,+)
 char *parseInput(char *string)
 {
@@ -155,14 +167,7 @@ char *parseInput(char *string)
     // Shunting yard algorithm
     for (int i = 0; i < strlen(string); i++)
     {
-        bool isOperator = false;
-        for (size_t j = 0; j < sizeof(operators) / sizeof(operators[0]); j++)
-        {
-            if (string[i] == operators[j].op)
-            {
-                isOperator = true;
-            }
-        }
+        bool cIsOperator = isOperator(string[i]);
         // ✅ left parenthesis: always push to the output queue
         if (string[i] == LEFT_PARENTHESIS)
         {
@@ -199,7 +204,7 @@ char *parseInput(char *string)
             pop(&operator_stack);
         }
         // ✅ Operators (+, -, *, /, ^): from the operator stack to the output queue (while ...) + push to the operator stack
-        else if (isOperator)
+        else if (cIsOperator)
         {
             OPERATOR current = getOperator(string[i]);
             char top_char = last(&operator_stack);
