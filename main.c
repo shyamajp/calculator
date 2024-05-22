@@ -329,7 +329,7 @@ double evaluatePostfix(char *postfix)
     }
 }
 
-int main()
+int main(void)
 {
     // // ask for user input e.g. 1+1
     // // 2 numbers only
