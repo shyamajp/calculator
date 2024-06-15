@@ -32,11 +32,11 @@ TOKEN *tokenize(char exp[])
     TOKEN *tokens = malloc(sizeof(TOKEN) * 10);
 
     char *ptr = exp;
+    int i = 0;
     while (*ptr != '\0')
     {
         char *value = malloc(sizeof(char) * 10);
         int size = 0;
-        int i = 0;
 
         if (is_operator(*ptr))
         {
@@ -45,18 +45,17 @@ TOKEN *tokenize(char exp[])
         }
         else
         {
-            while (!is_operator(*ptr))
+            do
             {
                 value[size++] = *ptr;
                 ptr++;
-            }
+            } while (!is_operator(*ptr) && *ptr != '\0');
             ptr--;
             value[size] = '\0';
         }
 
         tokens[i].value = value;
         tokens[i].size = size;
-        printf("token: %s\n", tokens[i].value);
 
         i++;
         ptr++;
