@@ -73,5 +73,11 @@ int main(void)
     char exp[100] = "(1+23)*456";
     TOKEN *tokens = tokenize(exp);
 
+    while (tokens->value != NULL)
+    {
+        printf("token: %s\n", tokens->value);
+        tokens++;
+    }
+
     return 0;
 }
