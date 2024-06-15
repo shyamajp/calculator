@@ -2,10 +2,13 @@
 #include <stdio.h>
 #include <stdbool.h>
 
-bool is_operator(char c)
-{
-    return c == '+' || c == '-' || c == '*' || c == '/' || c == '(' || c == ')' || c == '^';
-}
+const char LEFT_PARENTHESIS = '(';
+const char RIGHT_PARENTHESIS = ')';
+const char PLUS = '+';
+const char MINUS = '-';
+const char ASTERISK = '*';
+const char SLASH = '/';
+const char CARET = '^';
 
 struct TOKEN
 {
@@ -13,6 +16,15 @@ struct TOKEN
     int size;
 };
 typedef struct TOKEN TOKEN;
+
+bool is_operator(char c);
+TOKEN *tokenize(char exp[]);
+int main(void);
+
+bool is_operator(char c)
+{
+    return c == LEFT_PARENTHESIS || c == RIGHT_PARENTHESIS || c == PLUS || c == MINUS || c == ASTERISK || c == SLASH || c == CARET;
+}
 
 // Tokenize math expression
 // e.g. "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
