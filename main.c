@@ -10,12 +10,11 @@ const char ASTERISK = '*';
 const char SLASH = '/';
 const char CARET = '^';
 
-struct TOKEN
+typedef struct TOKEN
 {
     char *value;
     int size;
-};
-typedef struct TOKEN TOKEN;
+} TOKEN;
 
 bool is_operator(char c);
 TOKEN *tokenize(char exp[]);
