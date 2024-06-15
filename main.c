@@ -25,8 +25,12 @@ bool is_operator(char c)
     return c == LEFT_PARENTHESIS || c == RIGHT_PARENTHESIS || c == PLUS || c == MINUS || c == ASTERISK || c == SLASH || c == CARET;
 }
 
-// Tokenize math expression
-// e.g. "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
+/**
+ * @brief Tokenize math expression
+ * @param char* math expression
+ * @return TOKEN* pointers to each TOKEN
+ * @example "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
+ */
 TOKEN *tokenize(char exp[])
 {
     TOKEN *tokens = malloc(sizeof(TOKEN) * 10);
