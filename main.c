@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <string.h>
 
 const char LEFT_PARENTHESIS = '(';
 const char RIGHT_PARENTHESIS = ')';
@@ -10,14 +11,8 @@ const char ASTERISK = '*';
 const char SLASH = '/';
 const char CARET = '^';
 
-typedef struct TOKEN
-{
-    char *value;
-    int size;
-} TOKEN;
-
 bool is_operator(char c);
-TOKEN *tokenize(char exp[]);
+char **tokenize(char exp[]);
 int main(void);
 
 bool is_operator(char c)
@@ -28,38 +23,38 @@ bool is_operator(char c)
 /**
  * @brief Tokenize math expression
  * @param char* math expression
- * @return TOKEN* pointers to each TOKEN
+ * @return char** pointers to each token in string
  * @example "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
  */
-TOKEN *tokenize(char exp[])
+char **tokenize(char *exp)
 {
-    TOKEN *tokens = malloc(sizeof(TOKEN) * 10);
+    char **tokens = malloc(sizeof(char *) * 10);
 
     char *ptr = exp;
     int i = 0;
     while (*ptr != '\0')
     {
         char *value = malloc(sizeof(char) * 10);
-        int size = 0;
 
         if (is_operator(*ptr))
         {
-            value[size++] = *ptr;
-            value[size] = '\0';
+            value[0] = *ptr;
+            value[1] = '\0';
         }
         else
         {
+            int size = 0;
             do
             {
-                value[size++] = *ptr;
+                value[size] = *ptr;
                 ptr++;
+                size++;
             } while (!is_operator(*ptr) && *ptr != '\0');
             ptr--;
             value[size] = '\0';
         }
 
-        tokens[i].value = value;
-        tokens[i].size = size;
+        tokens[i] = value;
 
         i++;
         ptr++;
@@ -71,11 +66,11 @@ TOKEN *tokenize(char exp[])
 int main(void)
 {
     char exp[100] = "(1+23)*456";
-    TOKEN *tokens = tokenize(exp);
+    char **tokens = tokenize(exp);
 
-    while (tokens->value != NULL)
+    while (*tokens)
     {
-        printf("token: %s\n", tokens->value);
+        printf("%s\n", *tokens);
         tokens++;
     }
 
