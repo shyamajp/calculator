@@ -3,21 +3,46 @@
 #include <stdbool.h>
 #include <string.h>
 
-const char LEFT_PARENTHESIS = '(';
-const char RIGHT_PARENTHESIS = ')';
-const char PLUS = '+';
-const char MINUS = '-';
-const char ASTERISK = '*';
-const char SLASH = '/';
-const char CARET = '^';
+enum ASSOCIATIVITY
+{
+    LEFT,
+    RIGHT,
+    NONE,
+};
 
-bool is_operator(char c);
-char **tokenize(char exp[]);
-int main(void);
+typedef struct OPERATOR
+{
+    char op;
+    int precedence;
+    enum ASSOCIATIVITY associativity;
+} OPERATOR;
+
+typedef struct TOKEN
+{
+    char *value;
+    int size;
+} TOKEN;
+
+OPERATOR operators[7] = {
+    {'+', 1, LEFT},
+    {'-', 1, LEFT},
+    {'*', 2, LEFT},
+    {'/', 2, LEFT},
+    {'^', 3, RIGHT},
+    {'(', 0, NONE},
+    {')', 0, NONE},
+};
 
 bool is_operator(char c)
 {
-    return c == LEFT_PARENTHESIS || c == RIGHT_PARENTHESIS || c == PLUS || c == MINUS || c == ASTERISK || c == SLASH || c == CARET;
+    for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
+    {
+        if (c == operators[i].op)
+        {
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
