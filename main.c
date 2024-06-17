@@ -20,7 +20,8 @@ typedef struct OPERATOR
 typedef struct TOKEN
 {
     char *value;
-    int size;
+    int precedence;
+    enum ASSOCIATIVITY associativity;
 } TOKEN;
 
 typedef struct STACK
@@ -244,7 +245,7 @@ char **parseInput(char **infix)
  * @return char** pointers to each token in string
  * @example "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
  */
-char **tokenize(char *exp)
+char **parseString(char *exp)
 {
     char **tokens = malloc(sizeof(char *) * 10);
 
@@ -281,10 +282,47 @@ char **tokenize(char *exp)
     return tokens;
 }
 
+/**
+ * @brief Make string into token
+ * @param char* a token in string
+ * @return TOKEN token struct with value, precedence, and associativity
+ * @example "+" -> value: "+", precedence: 1, associativity: "LEFT"
+ * @example "123" -> value: "123", precedence: -1, associativity: "NONE
+ */
+TOKEN tokenize(char *str)
+{
+    OPERATOR op;
+    bool is_operator = false;
+    for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
+    {
+        if (str[0] == operators[i].op)
+        {
+            is_operator = true;
+            op = operators[i];
+        }
+    }
+
+    TOKEN token;
+    token.value = str;
+    token.precedence = is_operator ? op.precedence : -1;
+    token.associativity = is_operator ? op.associativity : NONE;
+
+    return token;
+}
+
 int main(void)
 {
     char exp[100] = "(1+23)*456";
-    char **tokens = tokenize(exp);
+    char **tokens = parseString(exp);
+
+    while (*tokens)
+    {
+        TOKEN token = tokenize(*tokens);
+
+        printf("value: %s | precedence: %d | associativity: %d\n", token.value, token.precedence, token.associativity);
+
+        tokens++;
+    }
 
     // parseInput(tokens);
 
