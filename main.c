@@ -26,7 +26,7 @@ typedef struct TOKEN
 
 typedef struct STACK
 {
-    char *elm[100]; // TODO: malloc this?
+    TOKEN elm[100]; // TODO: malloc this?
     int size;
 } STACK;
 
@@ -49,35 +49,35 @@ void print(STACK *stack)
 {
     for (int i = 0; i <= stack->size; i++)
     {
-        printf("%s ", stack->elm[i]);
+        printf("%s ", stack->elm[i].value);
     }
     printf("\n");
 }
 
-void push(STACK *stack, char *c)
+void push(STACK *stack, TOKEN token)
 {
     stack->size++;
-    stack->elm[stack->size] = c;
+    stack->elm[stack->size] = token;
 }
 
-char *first(STACK *stack)
+TOKEN first(STACK *stack)
 {
-    char *c = stack->elm[0];
-    return c;
+    return stack->elm[0];
 }
 
-char *last(STACK *stack)
+TOKEN last(STACK *stack)
 {
-    char *c = stack->elm[stack->size];
-    return c;
+    return stack->elm[stack->size];
 }
 
-char *pop(STACK *stack)
+TOKEN pop(STACK *stack)
 {
-    char *c = last(stack);
-    stack->elm[stack->size] = NULL;
+    TOKEN t = last(stack);
+    // TODO: hmm?
+    TOKEN n;
+    stack->elm[stack->size] = n;
     stack->size--;
-    return c;
+    return t;
 }
 
 bool isEmpty(STACK *stack)
@@ -98,22 +98,82 @@ bool is_operator(char c)
 }
 
 /**
-OPERATOR getOperator(char *token)
+ * @brief Make string into token
+ * @param char* a token in string
+ * @return TOKEN token struct with value, precedence, and associativity
+ * @example "+" -> value: "+", precedence: 1, associativity: "LEFT"
+ * @example "123" -> value: "123", precedence: -1, associativity: "NONE
+ */
+TOKEN getToken(char *str)
 {
+    OPERATOR op;
+    bool is_operator = false;
     for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
     {
-        if (token[0] == operators[i].op)
+        if (str[0] == operators[i].op)
         {
-            return operators[i];
+            is_operator = true;
+            op = operators[i];
         }
     }
+
+    TOKEN token;
+    token.value = str;
+    token.precedence = is_operator ? op.precedence : -1;
+    token.associativity = is_operator ? op.associativity : NONE;
+
+    return token;
 }
 
+/**
+ * @brief Tokenize math expression
+ * @param char* math expression
+ * @return char** pointers to each token in string
+ * @example "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
+ */
+TOKEN *tokenize(char *exp)
+{
+    TOKEN *tokens = malloc(sizeof(TOKEN) * 10);
+
+    char *ptr = exp;
+    int i = 0;
+    while (*ptr != '\0')
+    {
+        char *value = malloc(sizeof(char) * 10);
+
+        if (is_operator(*ptr))
+        {
+            value[0] = *ptr;
+            value[1] = '\0';
+        }
+        else
+        {
+            int size = 0;
+            do
+            {
+                value[size] = *ptr;
+                ptr++;
+                size++;
+            } while (!is_operator(*ptr) && *ptr != '\0');
+            ptr--;
+            value[size] = '\0';
+        }
+
+        tokens[i] = getToken(value);
+
+        i++;
+        ptr++;
+    }
+
+    return tokens;
+}
+
+/*
  * @brief Parse infix expression to postfix expression
  * @param char* infix expression
  * @return char* postfix expression separated by DELIMITER
  * @example "3+4*2/(1-5)^2^3" -> "3,4,2,*,1,5,−2,3,^,^,÷,+"
-char **parseInput(char **infix)
+TOKEN *convertToPostfix(TOKEN *infix)
 {
 
     STACK operator_stack;
@@ -237,94 +297,39 @@ char **parseInput(char **infix)
     print(&output_queue);
     return output_queue.elm;
 }
- */
+*/
 
-/**
- * @brief Tokenize math expression
- * @param char* math expression
- * @return char** pointers to each token in string
- * @example "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
- */
-char **tokenize(char *exp)
+double evaluatePostfix(TOKEN *postfix)
 {
-    char **tokens = malloc(sizeof(char *) * 10);
-
-    char *ptr = exp;
-    int i = 0;
-    while (*ptr != '\0')
-    {
-        char *value = malloc(sizeof(char) * 10);
-
-        if (is_operator(*ptr))
-        {
-            value[0] = *ptr;
-            value[1] = '\0';
-        }
-        else
-        {
-            int size = 0;
-            do
-            {
-                value[size] = *ptr;
-                ptr++;
-                size++;
-            } while (!is_operator(*ptr) && *ptr != '\0');
-            ptr--;
-            value[size] = '\0';
-        }
-
-        tokens[i] = value;
-
-        i++;
-        ptr++;
-    }
-
-    return tokens;
-}
-
-/**
- * @brief Make string into token
- * @param char* a token in string
- * @return TOKEN token struct with value, precedence, and associativity
- * @example "+" -> value: "+", precedence: 1, associativity: "LEFT"
- * @example "123" -> value: "123", precedence: -1, associativity: "NONE
- */
-TOKEN getToken(char *str)
-{
-    OPERATOR op;
-    bool is_operator = false;
-    for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
-    {
-        if (str[0] == operators[i].op)
-        {
-            is_operator = true;
-            op = operators[i];
-        }
-    }
-
-    TOKEN token;
-    token.value = str;
-    token.precedence = is_operator ? op.precedence : -1;
-    token.associativity = is_operator ? op.associativity : NONE;
-
-    return token;
+    return 0;
 }
 
 int main(void)
 {
     char exp[100] = "(1+23)*456";
-    char **tokens = tokenize(exp);
+    TOKEN *tokens = tokenize(exp);
 
-    while (*tokens)
-    {
-        TOKEN token = getToken(*tokens);
-
-        printf("value: %s | precedence: %d | associativity: %d\n", token.value, token.precedence, token.associativity);
-
-        tokens++;
-    }
+    // while (tokens->value != NULL)
+    // {
+    //     printf("value: %s | precedence: %d | associativity: %d\n", tokens->value, tokens->precedence, tokens->associativity);
+    //     tokens++;
+    // }
 
     // parseInput(tokens);
+
+    STACK s;
+    init(&s);
+    push(&s, tokens[0]);
+    push(&s, tokens[1]);
+    push(&s, tokens[2]);
+    push(&s, tokens[3]);
+    print(&s);
+
+    pop(&s);
+    print(&s);
+
+    push(&s, tokens[4]);
+    print(&s);
 
     return 0;
 }
