@@ -245,7 +245,7 @@ char **parseInput(char **infix)
  * @return char** pointers to each token in string
  * @example "(1+23)*456" -> {"(", "1", "+", "23", ")", "*", "456"}
  */
-char **parseString(char *exp)
+char **tokenize(char *exp)
 {
     char **tokens = malloc(sizeof(char *) * 10);
 
@@ -289,7 +289,7 @@ char **parseString(char *exp)
  * @example "+" -> value: "+", precedence: 1, associativity: "LEFT"
  * @example "123" -> value: "123", precedence: -1, associativity: "NONE
  */
-TOKEN tokenize(char *str)
+TOKEN getToken(char *str)
 {
     OPERATOR op;
     bool is_operator = false;
@@ -313,11 +313,11 @@ TOKEN tokenize(char *str)
 int main(void)
 {
     char exp[100] = "(1+23)*456";
-    char **tokens = parseString(exp);
+    char **tokens = tokenize(exp);
 
     while (*tokens)
     {
-        TOKEN token = tokenize(*tokens);
+        TOKEN token = getToken(*tokens);
 
         printf("value: %s | precedence: %d | associativity: %d\n", token.value, token.precedence, token.associativity);
 
