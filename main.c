@@ -10,18 +10,20 @@ enum ASSOCIATIVITY
     NONE,
 };
 
-typedef struct OPERATOR
+enum TYPE
 {
-    char op;
-    int precedence;
-    enum ASSOCIATIVITY associativity;
-} OPERATOR;
+    NUMBER,
+    OPERATOR,
+    LEFT_PARENTHESES,
+    RIGHT_PARENTHESES,
+};
 
 typedef struct TOKEN
 {
     char *value;
     int precedence;
     enum ASSOCIATIVITY associativity;
+    enum TYPE type;
 } TOKEN;
 
 typedef struct STACK
@@ -29,16 +31,6 @@ typedef struct STACK
     TOKEN elm[100]; // TODO: malloc this?
     int size;
 } STACK;
-
-OPERATOR operators[7] = {
-    {'+', 1, LEFT},
-    {'-', 1, LEFT},
-    {'*', 2, LEFT},
-    {'/', 2, LEFT},
-    {'^', 3, RIGHT},
-    {'(', 0, NONE},
-    {')', 0, NONE},
-};
 
 void init(STACK *stack)
 {
@@ -85,15 +77,13 @@ bool isEmpty(STACK *stack)
     return stack->size == -1;
 }
 
-bool is_operator(char c)
+bool isOperator(char c)
 {
-    for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
+    if (c == '(' || c == ')' || c == '+' || c == '-' || c == '*' || c == '/' || c == '^')
     {
-        if (c == operators[i].op)
-        {
-            return true;
-        }
+        return true;
     }
+
     return false;
 }
 
@@ -106,21 +96,45 @@ bool is_operator(char c)
  */
 TOKEN getToken(char *str)
 {
-    OPERATOR op;
-    bool is_operator = false;
-    for (size_t i = 0; i < sizeof(operators) / sizeof(operators[0]); i++)
-    {
-        if (str[0] == operators[i].op)
-        {
-            is_operator = true;
-            op = operators[i];
-        }
-    }
-
     TOKEN token;
     token.value = str;
-    token.precedence = is_operator ? op.precedence : -1;
-    token.associativity = is_operator ? op.associativity : NONE;
+
+    if (str[0] == '(')
+    {
+        token.precedence = 0;
+        token.associativity = NONE;
+        token.type = LEFT_PARENTHESES;
+    }
+    else if (str[0] == ')')
+    {
+        token.precedence = 0;
+        token.associativity = NONE;
+        token.type = RIGHT_PARENTHESES;
+    }
+    else if (str[0] == '+' || str[0] == '-')
+    {
+        token.precedence = 1;
+        token.associativity = LEFT;
+        token.type = OPERATOR;
+    }
+    else if (str[0] == '*' || str[0] == '/')
+    {
+        token.precedence = 2;
+        token.associativity = LEFT;
+        token.type = OPERATOR;
+    }
+    else if (str[0] == '^')
+    {
+        token.precedence = 3;
+        token.associativity = RIGHT;
+        token.type = OPERATOR;
+    }
+    else
+    {
+        token.precedence = -1;
+        token.associativity = NONE;
+        token.type = NUMBER;
+    }
 
     return token;
 }
@@ -141,7 +155,7 @@ TOKEN *tokenize(char *exp)
     {
         char *value = malloc(sizeof(char) * 10);
 
-        if (is_operator(*ptr))
+        if (isOperator(*ptr))
         {
             value[0] = *ptr;
             value[1] = '\0';
@@ -154,7 +168,7 @@ TOKEN *tokenize(char *exp)
                 value[size] = *ptr;
                 ptr++;
                 size++;
-            } while (!is_operator(*ptr) && *ptr != '\0');
+            } while (!isOperator(*ptr) && *ptr != '\0');
             ptr--;
             value[size] = '\0';
         }
@@ -168,11 +182,12 @@ TOKEN *tokenize(char *exp)
     return tokens;
 }
 
-/*
+/**
  * @brief Parse infix expression to postfix expression
  * @param char* infix expression
  * @return char* postfix expression separated by DELIMITER
  * @example "3+4*2/(1-5)^2^3" -> "3,4,2,*,1,5,−2,3,^,^,÷,+"
+ */
 TOKEN *convertToPostfix(TOKEN *infix)
 {
 
@@ -183,104 +198,74 @@ TOKEN *convertToPostfix(TOKEN *infix)
     init(&operator_stack);
     init(&output_queue);
 
-    char **token = infix;
+    TOKEN *tokens = infix;
 
     // Shunting yard algorithm
-    while (*token)
+    while (tokens->value != NULL)
     {
-        printf("token: %s ", *token);
+        TOKEN token = *tokens;
+        printf("token: %s\n", token.value);
 
-        char c = *token[0];
-
-        if (is_operator(c))
+        // ✅ left parenthesis: always push to the output queue
+        if (token.type == LEFT_PARENTHESES)
         {
-            // ✅ left parenthesis: always push to the output queue
-            if (c == '(')
+            printf("%s | push it onto the operator stack\n", token.value);
+            push(&operator_stack, token);
+        }
+        // ✅ right parenthesis: pop operators in the operator stack to the output queue until left parenthesis
+        else if (token.type == RIGHT_PARENTHESES)
+        {
+            TOKEN top = last(&operator_stack);
+            while (top.type != LEFT_PARENTHESES)
             {
-                printf("%s | Push token to stack\n", *infix);
-                push(&operator_stack, *infix);
-            }
-            // ✅ right parenthesis: pop operators in the operator stack to the output queue until left parenthesis
-            else if (c == ')')
-            {
-                char *top_char = last(&operator_stack);
-
-                while (top_char[0] != ')')
+                // 🚨 assert: the operator stack is not empty
+                if (isEmpty(&operator_stack))
                 {
-                    // 🚨 assert: the operator stack is not empty
-                    if (isEmpty(&operator_stack))
-                    {
-                        printf("Invalid expression, exiting...\n");
-                        exit(1);
-                    }
-                    char *operator= pop(&operator_stack);
-                    printf("%s | Add token to output\n", *infix);
-                    push(&output_queue, operator);
-
-                    top_char = last(&operator_stack);
-                }
-
-                // 🚨 assert: there is a left parenthesis at the top of the operator stack
-                if (top_char[0] != ')')
-                {
-                    printf("Invalid expression, exiting...\n");
+                    printf("ERR1: Invalid expression, exiting...\n");
                     exit(1);
                 }
-                printf("%s | Pop stack\n", *infix);
-                pop(&operator_stack);
+
+                TOKEN operator= pop(&operator_stack);
+                push(&output_queue, operator);
+                printf("%s | pop the operator from the operator stack into the output queue\n", operator.value);
+                top = last(&operator_stack);
             }
-            // ✅ Operators (+, -, *, /, ^): from the operator stack to the output queue (while ...) + push to the operator stack
-            else
+
+            // 🚨 assert: there is a left parenthesis at the top of the operator stack
+            if (top.type != LEFT_PARENTHESES)
             {
-                OPERATOR current_operator = getOperator(*infix);
-                char *top_char = last(&operator_stack);
-                OPERATOR top_operator = getOperator(top_char);
-
-                while ((!isEmpty(&operator_stack) && top_char[0] != '(') &&
-                       (current_operator.precedence < top_operator.precedence || (current_operator.precedence == top_operator.precedence && current_operator.associativity == LEFT)))
-                {
-                    printf("%s | Pop stack to output\n", *infix);
-                    char *operator= pop(&operator_stack);
-                    push(&output_queue, operator);
-                    top_operator = getOperator(first(&operator_stack));
-                }
-
-                printf("%s | Push token to stack\n", *infix);
-                char *temp = {current_operator.op, '\0'};
-                push(&operator_stack, temp);
+                printf("ERR2: Invalid expression, exiting...\n");
+                exit(1);
             }
+            printf("%s | pop the left parenthesis from the operator stack and discard it\n", top.value);
+            pop(&operator_stack);
+        }
+        // ✅ Operators (+, -, *, /, ^): from the operator stack to the output queue (while ...) + push to the operator stack
+        else if (token.type == OPERATOR)
+        {
+            TOKEN top = last(&operator_stack);
+
+            while ((!isEmpty(&operator_stack) && top.type != LEFT_PARENTHESES) &&
+                   (token.precedence < top.precedence || (token.precedence == top.precedence && token.associativity == LEFT)))
+            {
+                TOKEN operator= pop(&operator_stack);
+                push(&output_queue, operator);
+                printf("%s | pop o2 from the operator stack into the output queue\n", operator.value);
+
+                top = first(&operator_stack);
+            }
+
+            printf("%s | push o1 onto the operator stack\n", token.value);
+            push(&operator_stack, token);
         }
         // ✅ number: to the output queue
         else
         {
-            printf("%s | Add token to output\n", *token);
-            push(&output_queue, *token);
+            printf("%s | Add number to output queue\n", token.value);
+            push(&output_queue, token);
         }
         printf("\n");
-        token++;
-    }
-
-    // For debugging purpose
-    printf("output: ");
-    print(&output_queue);
-    printf("operator: ");
-    print(&operator_stack);
-    printf("=====================================\n");
-
-    // ✅ all remainings: from the operator stack to the output queue
-    while (!isEmpty(&operator_stack))
-    {
-        // 🚨 assert: the operator on top of the stack is not a (left) parenthesis
-        if (last(&operator_stack) == ')')
-        {
-            printf("Invalid expression, exiting...\n");
-            exit(1);
-        }
-
-        printf("%c | Pop stack to output\n", last(&operator_stack));
-        char operator= pop(&operator_stack);
-        push(&output_queue, operator);
-        push(&output_queue, DELIMITER);
+        tokens++;
 
         // For debugging purpose
         printf("output: ");
@@ -289,15 +274,35 @@ TOKEN *convertToPostfix(TOKEN *infix)
         print(&operator_stack);
         printf("=====================================\n");
     }
-    // remove the last comma
-    pop(&output_queue);
 
+    // ✅ all remainings: from the operator stack to the output queue
+    while (!isEmpty(&operator_stack))
+    {
+        TOKEN operator= last(&operator_stack);
+        // 🚨 assert: the operator on top of the stack is not a (left) parenthesis
+        if (operator.type == RIGHT_PARENTHESES)
+        {
+            printf("ERR3: Invalid expression, exiting...\n");
+            exit(1);
+        }
+
+        printf("%s | Pop stack to output\n", operator.value);
+        pop(&operator_stack);
+        push(&output_queue, operator);
+
+        // For debugging purpose
+        printf("output: ");
+        print(&output_queue);
+        printf("operator: ");
+        print(&operator_stack);
+        printf("=====================================\n");
+    }
     // For debugging purpose
     printf("FINAL: ");
     print(&output_queue);
+
     return output_queue.elm;
 }
-*/
 
 double evaluatePostfix(TOKEN *postfix)
 {
@@ -306,30 +311,17 @@ double evaluatePostfix(TOKEN *postfix)
 
 int main(void)
 {
-    char exp[100] = "(1+23)*456";
+    char exp[100] = "3+4*2/(1-5)^2^3";
+
     TOKEN *tokens = tokenize(exp);
 
-    // while (tokens->value != NULL)
-    // {
-    //     printf("value: %s | precedence: %d | associativity: %d\n", tokens->value, tokens->precedence, tokens->associativity);
-    //     tokens++;
-    // }
+    TOKEN *postfix = convertToPostfix(tokens);
 
-    // parseInput(tokens);
-
-    STACK s;
-    init(&s);
-    push(&s, tokens[0]);
-    push(&s, tokens[1]);
-    push(&s, tokens[2]);
-    push(&s, tokens[3]);
-    print(&s);
-
-    pop(&s);
-    print(&s);
-
-    push(&s, tokens[4]);
-    print(&s);
+    while (postfix->value != NULL)
+    {
+        printf("value: %s | precedence: %d | associativity: %d | type: %d\n", postfix->value, postfix->precedence, postfix->associativity, postfix->type);
+        postfix++;
+    }
 
     return 0;
 }
