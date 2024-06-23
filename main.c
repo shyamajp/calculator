@@ -385,13 +385,17 @@ double evaluatePostfix(TOKEN *postfix)
 
 int main(void)
 {
-    char exp[100] = "2+(3*1)-9";
+
+    char exp[100];
+
+    printf("Enter: \n");
+    scanf("%s", exp);
 
     TOKEN *tokens = tokenize(exp);
 
     TOKEN *postfix = convertToPostfix(tokens);
 
     double result = evaluatePostfix(postfix);
-    printf("FINAL: %f\n", result);
+    printf("result: %f\n", result);
     return 0;
 }
