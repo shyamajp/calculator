@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <string.h>
+#include <math.h>
 
 enum ASSOCIATIVITY
 {
@@ -304,24 +305,93 @@ TOKEN *convertToPostfix(TOKEN *infix)
     return output_queue.elm;
 }
 
+double performeOperation(double a, double b, TOKEN operator)
+{
+    if (operator.value[0] == '+')
+    {
+        return a + b;
+    }
+    else if (operator.value[0] == '-')
+    {
+        return a - b;
+    }
+    else if (operator.value[0] == '*')
+    {
+        return a * b;
+    }
+    else if (operator.value[0] == '/')
+    {
+        return a / b;
+    }
+    else if (operator.value[0] == '^')
+    {
+        return pow(a, b);
+    }
+    printf("ERR4: Invalid operator, exiting...\n");
+    exit(1);
+}
+
 double evaluatePostfix(TOKEN *postfix)
 {
-    return 0;
+
+    STACK stack;
+    init(&stack);
+
+    TOKEN *tokens = postfix;
+
+    while (tokens->value != NULL)
+    {
+        printf("token: %s\n", tokens->value);
+
+        // Number: push to the stack
+        if (tokens->type == NUMBER)
+        {
+            push(&stack, *tokens);
+        }
+        // Operator: pop two numbers from the stack, calculate, and push the result to the stack
+        else if (tokens->type == OPERATOR)
+        {
+            double a = atof(pop(&stack).value);
+            double b = atof(pop(&stack).value);
+
+            double result = performeOperation(b, a, *tokens);
+
+            printf("a: %f | b: %f\n", a, b);
+            printf("operator %s | result: %f\n", tokens->value, result);
+
+            char result_str[32];
+            sprintf(result_str, "%2.13f", result);
+
+            TOKEN token = getToken(result_str);
+            push(&stack, token);
+        }
+        // TODO: idk how to get out of the loop :(
+        else
+        {
+            break;
+        }
+        // For debugging purpose
+        printf("stack: ");
+        print(&stack);
+        printf("=====================================\n");
+
+        tokens++;
+    }
+
+    char *final_str = pop(&stack).value;
+    double final = atof(final_str);
+    return final;
 }
 
 int main(void)
 {
-    char exp[100] = "3+4*2/(1-5)^2^3";
+    char exp[100] = "2+(3*1)-9";
 
     TOKEN *tokens = tokenize(exp);
 
     TOKEN *postfix = convertToPostfix(tokens);
 
-    while (postfix->value != NULL)
-    {
-        printf("value: %s | precedence: %d | associativity: %d | type: %d\n", postfix->value, postfix->precedence, postfix->associativity, postfix->type);
-        postfix++;
-    }
-
+    double result = evaluatePostfix(postfix);
+    printf("FINAL: %f\n", result);
     return 0;
 }
